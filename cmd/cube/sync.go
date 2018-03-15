@@ -128,9 +128,3 @@ func setConfigFromCLI(c *cli.Context) *cube.SyncConfig {
 		},
 	}
 }
-
-func exitWithError(err error) {
-	if err != nil {
-		panic(err)
-	}
-}

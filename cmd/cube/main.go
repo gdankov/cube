@@ -66,7 +66,25 @@ func main() {
 			},
 			Action: syncCmd,
 		},
+		{
+			Name:  "stage",
+			Usage: "stage CC apps to given backend",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "kubeconfig",
+					Usage: "path to kubernetes client config",
+					Value: filepath.Join(os.Getenv("HOME"), ".kube", "config"),
+				},
+			},
+			Action: stagingCmd,
+		},
 	}
 
 	app.Run(os.Args)
+}
+
+func exitWithError(err error) {
+	if err != nil {
+		panic(err)
+	}
 }
