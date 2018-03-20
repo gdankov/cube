@@ -370,3 +370,35 @@ func (c *Client) GetDropletByAppGuid(guid string) ([]byte, error) {
 
 	return body, nil
 }
+
+func (c *Client) GetAppBitsByAppGuid(guid string) ([]byte, error) {
+	r := c.NewRequest("GET", "/v2/apps/"+guid+"/download")
+	resp, err := c.DoRequest(r)
+	if err != nil {
+		return []byte{}, err
+	}
+	fmt.Println("Get Droplet Status Code: ", resp.StatusCode)
+	body, err := ioutil.ReadAll(resp.Body)
+	defer resp.Body.Close()
+	if err != nil {
+		return []byte{}, err
+	}
+
+	return body, nil
+}
+
+func (c *Client) GetAppBitsByDownloadUrl(downloadUrl string) ([]byte, error) {
+	r := c.NewRequest("GET", downloadUrl)
+	resp, err := c.DoRequest(r)
+	if err != nil {
+		return []byte{}, err
+	}
+	fmt.Println("Get Droplet Status Code: ", resp.StatusCode)
+	body, err := ioutil.ReadAll(resp.Body)
+	defer resp.Body.Close()
+	if err != nil {
+		return []byte{}, err
+	}
+
+	return body, nil
+}
