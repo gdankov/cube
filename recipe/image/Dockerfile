@@ -21,8 +21,6 @@ RUN mkdir /packs
 COPY builder /packs/
 COPY recipe /packs/
 
-RUN echo "10.175.143.231 api.bosh-lite-cube.dynamic-dns.net login.bosh-lite-cube.dynamic-dns.net uaa.bosh-lite-cube.dynamic-dns.net blobstore.bosh-lite-cube.dynamic-dns.net" >> /etc/hosts
-
 ENTRYPOINT [ \
   "/packs/recipe" \
 ]
