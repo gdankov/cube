@@ -1,28 +1,26 @@
 package main
 
 import (
-	"net/http"
-
-	"github.com/JulzDiverse/cfclient"
+	"github.com/julz/cube"
 	"github.com/pkg/errors"
 )
 
 type Uploader struct {
-	Client *http.Client
+	Cfclient cube.CfClient
 }
 
-func (u *Uploader) UploadWithCfClient(cfclient *cfclient.Client, guid string, path string) error {
+func (u *Uploader) Upload(guid string, path string) error {
 	if guid == "" {
-		return errors.New("empty-guid-provided")
+		return errors.New("empty guid parameter")
 	}
 
 	if path == "" {
-		return errors.New("empty-filepath-provided")
+		return errors.New("empty path parameter")
 	}
 
-	err := cfclient.PushDroplet("droplet", guid)
+	err := u.Cfclient.PushDroplet(path, guid)
 	if err != nil {
-		return errors.Wrap(err, "perform-request-failed")
+		return errors.Wrap(err, "perform request failed")
 	}
 
 	return nil

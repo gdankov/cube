@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"code.cloudfoundry.org/lager"
+	"github.com/julz/cube"
 	"github.com/julz/cube/k8s"
 	"github.com/julz/cube/stager"
 	"github.com/urfave/cli"
@@ -29,7 +30,14 @@ func stagingCmd(c *cli.Context) {
 	logger := lager.NewLogger("st8r")
 	logger.RegisterSink(lager.NewWriterSink(os.Stdout, lager.DEBUG))
 
-	backend := stager.NewBackend(logger)
+	backendConfig := cube.BackendConfig{
+		CfUsername:        c.String("cf-username"),
+		CfPassword:        c.String("cf-password"),
+		ApiAddress:        c.String("cf-endpoint"),
+		SkipSslValidation: c.Bool("skipSslValidation"),
+	}
+
+	backend := stager.NewBackend(backendConfig, logger)
 
 	handler := stager.New(st8r, backend, logger)
 

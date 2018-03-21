@@ -1,67 +1,55 @@
 package main_test
 
 import (
+	"bytes"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"os"
 
+	"github.com/julz/cube/cubefakes"
 	. "github.com/julz/cube/recipe"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/ghttp"
 )
 
 var _ = Describe("Downloader", func() {
 	var (
 		downloader *Downloader
-		fakeServer *ghttp.Server
+		//fakeServer *ghttp.Server
+		cfclient *cubefakes.FakeCfClient
 	)
 
 	BeforeEach(func() {
-		downloader = &Downloader{&http.Client{}}
-		fakeServer = ghttp.NewServer()
-	})
-
-	It("contains a http.Client field", func() {
-		Expect(downloader.Client).Should(BeAssignableToTypeOf(&http.Client{}))
+		cfclient = new(cubefakes.FakeCfClient)
+		downloader = &Downloader{cfclient}
+		//fakeServer = ghttp.NewServer()
 	})
 
 	Context("Download", func() {
 
-		It("should return an error if an empty url is provided", func() {
+		It("should return an error if an empty appId is provided", func() {
 			err := downloader.Download("", "")
 			Expect(err).To(HaveOccurred())
 
-			Expect(err).To(MatchError(ContainSubstring("empty url provided")))
+			Expect(err).To(MatchError(ContainSubstring("empty appId provided")))
 		})
 
-		It("should return an error if an empty file name is provided", func() {
-			err := downloader.Download("http://download-me.com", "")
+		It("should return an error if an empty path name is provided", func() {
+			err := downloader.Download("guid", "")
 			Expect(err).To(HaveOccurred())
 
-			Expect(err).To(MatchError(ContainSubstring("empty filename provided")))
-		})
-
-		It("performs an request against the provided url", func() {
-			fakeServer.AppendHandlers(
-				ghttp.VerifyRequest("GET", "/download-me"),
-			)
-
-			err := downloader.Download(fakeServer.URL()+"/download-me", "file")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(fakeServer.ReceivedRequests()).Should(HaveLen(1))
+			Expect(err).To(MatchError(ContainSubstring("empty filepath provided")))
 		})
 
 		Context("When the downlad request is successful", func() {
 
 			BeforeEach(func() {
-				fakeServer.AppendHandlers(
-					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/download-me"),
-						ghttp.RespondWith(http.StatusOK, `appbits`),
-					),
-				)
+				cfclient.GetAppBitsByAppGuidReturns(&http.Response{
+					Body:       ioutil.NopCloser(bytes.NewBufferString("appbits")),
+					StatusCode: http.StatusOK,
+				}, nil)
 			})
 
 			AfterEach(func() {
@@ -70,7 +58,7 @@ var _ = Describe("Downloader", func() {
 			})
 
 			It("writes the downloaded content to the given file", func() {
-				err := downloader.Download(fakeServer.URL()+"/download-me", "test/file")
+				err := downloader.Download("guid", "test/file")
 				Expect(err).ToNot(HaveOccurred())
 				Expect("test/file").Should(BeAnExistingFile())
 
@@ -80,21 +68,35 @@ var _ = Describe("Downloader", func() {
 			})
 		})
 
-		Context("When the download request fails", func() {
-			BeforeEach(func() {
-				fakeServer.AppendHandlers(
-					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/download-me"),
-						ghttp.RespondWith(http.StatusInternalServerError, nil),
-					),
-				)
+		Context("When the download fails", func() {
+			Context("because of the cfclient", func() {
+				BeforeEach(func() {
+					cfclient.GetAppBitsByAppGuidReturns(&http.Response{
+						StatusCode: http.StatusInternalServerError,
+					}, errors.New("aargh"))
+				})
+
+				It("should error with an corresponding error message", func() {
+					err := downloader.Download("guid", "test/file")
+					Expect(err).To(HaveOccurred())
+					Expect(err).To(MatchError(ContainSubstring("failed to perform request")))
+				})
 			})
 
-			It("should error with an corresponding error message", func() {
-				err := downloader.Download(fakeServer.URL()+"/download-me", "test/file")
-				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError(ContainSubstring("Download failed")))
+			Context("but cfclient does not return an error", func() {
+				BeforeEach(func() {
+					cfclient.GetAppBitsByAppGuidReturns(&http.Response{
+						StatusCode: http.StatusInternalServerError,
+					}, nil)
+				})
+
+				It("should return an meaningful err message", func() {
+					err := downloader.Download("guid", "test/file")
+					Expect(err).To(HaveOccurred())
+					Expect(err).To(MatchError(ContainSubstring("Download failed. Status Code")))
+				})
 			})
+
 		})
 	})
 })

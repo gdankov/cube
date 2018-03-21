@@ -19,13 +19,13 @@ import (
 //}
 
 type backend struct {
-	//config    Config
+	config cube.BackendConfig
 	logger lager.Logger
 }
 
-func NewBackend(logger lager.Logger) cube.Backend {
+func NewBackend(config cube.BackendConfig, logger lager.Logger) cube.Backend {
 	return &backend{
-		//config:    config,
+		config: config,
 		logger: logger.Session("kubernetes"),
 	}
 }
@@ -41,13 +41,16 @@ func (b backend) CreateStagingTask(stagingGuid string, request cc_messages.Stagi
 	}
 
 	stagingTask := opi.Task{
-		Image: "packs/cf:build",
+		Image: "diegoteam/recipe:build",
 		Env: map[string]string{
 			"DOWNLOAD_URL":        lifecycleData.AppBitsDownloadUri,
 			"UPLOAD_URL":          lifecycleData.DropletUploadUri,
 			"APP_ID":              request.AppId,
 			"STAGING_GUID":        stagingGuid,
 			"COMPLETION_CALLBACK": request.CompletionCallback,
+			"CF_USERNAME":         b.config.CfUsername,
+			"CF_PASSWORD":         b.config.CfPassword,
+			"API_ADDRESS":         b.config.ApiAddress,
 		},
 	}
 

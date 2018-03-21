@@ -1,6 +1,8 @@
 package cube
 
 import (
+	"net/http"
+
 	"code.cloudfoundry.org/runtimeschema/cc_messages"
 	"github.com/julz/cube/opi"
 )
@@ -14,6 +16,8 @@ type AppInfo struct {
 //go:generate counterfeiter . CfClient
 type CfClient interface {
 	GetDropletByAppGuid(string) ([]byte, error)
+	PushDroplet(string, string) error
+	GetAppBitsByAppGuid(string) (*http.Response, error)
 }
 
 type SyncConfig struct {
@@ -41,6 +45,13 @@ type Stager interface {
 //go:generate counterfeiter . Backend
 type Backend interface {
 	CreateStagingTask(string, cc_messages.StagingRequestFromCC) (opi.Task, error)
+}
+
+type BackendConfig struct {
+	CfUsername        string
+	CfPassword        string
+	ApiAddress        string
+	SkipSslValidation bool
 }
 
 //******** STAGING TASK BY JULZ.S

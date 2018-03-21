@@ -22,7 +22,13 @@ var _ = Describe("Backend", func() {
 
 	BeforeEach(func() {
 		logger = lagertest.NewTestLogger("test")
-		backend = stager.NewBackend(logger)
+		config := cube.BackendConfig{
+			CfUsername: "admin",
+			CfPassword: "admin",
+			ApiAddress: "api.mycf.com",
+		}
+
+		backend = stager.NewBackend(config, logger)
 	})
 
 	Context("CreateStagingTask", func() {
@@ -61,10 +67,13 @@ var _ = Describe("Backend", func() {
 			Expect(task.Env["APP_ID"]).To(Equal("appid"))
 			Expect(task.Env["STAGING_GUID"]).To(Equal("staging-guid"))
 			Expect(task.Env["COMPLETION_CALLBACK"]).To(Equal("http://call-me.back"))
+			Expect(task.Env["CF_USERNAME"]).To(Equal("admin"))
+			Expect(task.Env["CF_PASSWORD"]).To(Equal("admin"))
+			Expect(task.Env["API_ADDRESS"]).To(Equal("api.mycf.com"))
 		})
 
 		It("should create a staging task with the right image name", func() {
-			Expect(task.Image).To(Equal("packs/cf:build"))
+			Expect(task.Image).To(Equal("diegoteam/recipe:build"))
 		})
 	})
 })

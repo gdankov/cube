@@ -11,7 +11,6 @@ import (
 	"github.com/julz/cube"
 )
 
-//func New(logger lager.Logger, ccClient cc_client.CcClient, clock clock.Clock) http.Handler {
 func New(stager cube.Stager, backend cube.Backend, logger lager.Logger) http.Handler {
 	handler := httprouter.New()
 
@@ -21,7 +20,6 @@ func New(stager cube.Stager, backend cube.Backend, logger lager.Logger) http.Han
 	handler.DELETE("/v1/staging/:staging_guid", stagingHandler.StopStaging)
 	handler.POST("/v1/staging/:staging_guid/completed", stagingHandler.StagingComplete)
 
-	//stagingHandler := NewStagingHandler(logger, backends, bbsClient)
 	//stagingCompletedHandler := NewStagingCompletionHandler(logger, ccClient, backends, clock)
 
 	return handler

@@ -8,6 +8,6 @@ BASEDIR="$(cd $(dirname $0)/.. && pwd)"
 ( cd $BASEDIR/packs/cf/builder && GOOS=linux CGO_ENABLED=0 go build -a -installsuffix static -o $BASEDIR/image/builder )
 
 pushd $BASEDIR/image
-docker build --build-arg buildpacks="$(< "buildpacks.json")" -t "cube/recipe:build" .
+docker build --build-arg buildpacks="$(< "buildpacks.json")" -t "diegoteam/recipe:build" .
 popd
 

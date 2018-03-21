@@ -4,7 +4,6 @@ import (
 	"archive/zip"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -27,8 +26,6 @@ func main() {
 
 	fmt.Println("STARTING WITH:", downloadUrl, uploadUrl, appId, stagingGuid, completionCallback)
 
-	downloader := Downloader{&http.Client{}}
-	uploader := Uploader{&http.Client{}}
 	cfclient, err := cfclient.NewClient(&cfclient.Config{
 		SkipSslValidation: true,
 		Username:          username,
@@ -36,9 +33,12 @@ func main() {
 		ApiAddress:        apiAddress,
 	})
 
+	downloader := Downloader{cfclient}
+	uploader := Uploader{cfclient}
+
 	exitWithError(err)
 
-	err = downloader.DownloadWithCfClient(cfclient, appId, "/workspace/appbits")
+	err = downloader.Download(appId, "/workspace/appbits")
 	exitWithError(err)
 
 	// TODO: Replace this with pure-go implementation of an unzipper
@@ -62,7 +62,7 @@ func main() {
 	exitWithError(err)
 
 	fmt.Println("Start Upload Process.")
-	err = uploader.UploadWithCfClient(cfclient, appId, "/out/droplet.tgz")
+	err = uploader.Upload(appId, "/out/droplet.tgz")
 	exitWithError(err)
 }
 

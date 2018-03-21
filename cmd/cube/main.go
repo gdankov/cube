@@ -75,6 +75,21 @@ func main() {
 					Usage: "path to kubernetes client config",
 					Value: filepath.Join(os.Getenv("HOME"), ".kube", "config"),
 				},
+				cli.StringFlag{
+					Name:  "cf-username",
+					Value: "admin",
+				},
+				cli.StringFlag{
+					Name:  "cf-password",
+					Value: "admin",
+				},
+				cli.StringFlag{
+					Name:  "cf-endpoint",
+					Value: "https://api.bosh-lite.com",
+				},
+				cli.BoolFlag{
+					Name: "skipSslValidation",
+				},
 			},
 			Action: stagingCmd,
 		},
