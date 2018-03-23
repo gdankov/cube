@@ -2,6 +2,7 @@ package stager
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -89,7 +90,17 @@ func (handler *StagingHandler) StopStaging(resp http.ResponseWriter, req *http.R
 }
 
 func (handler *StagingHandler) StagingComplete(resp http.ResponseWriter, req *http.Request, ps httprouter.Params) {
-	//TODO
+	stagingGuid := ps.ByName("staging_guid")
+	logger := handler.logger.Session("staging-complete", lager.Data{"staging-guid": stagingGuid})
+
+	requestBody, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		logger.Error("read-body-failed", err)
+		resp.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Println("REQUEST:", string(requestBody))
 }
 
 //Wrap httprouter.Hanlde for testing

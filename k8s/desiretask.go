@@ -11,6 +11,12 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
+type JobConfig struct {
+	ActiveDeadlineSeconds int64
+	RestartPolicy         string
+	Namespace             string
+}
+
 type TaskDesirer struct {
 	Client *kubernetes.Clientset
 }
@@ -27,10 +33,6 @@ func (d TaskDesirer) Desire(ctx context.Context, tasks []opi.Task) error {
 	}
 
 	for _, task := range tasks {
-		//if _, ok := dByName[task.Name]; ok {
-		//continue
-		//}
-
 		if _, err := d.Client.BatchV1().Jobs("default").Create(toJob(task)); err != nil {
 			// fixme: this should be a multi-error and deferred
 			return err
@@ -51,38 +53,10 @@ func toJob(task opi.Task) *batch.Job {
 			Template: v1.PodTemplateSpec{
 				Spec: v1.PodSpec{
 					Containers: []v1.Container{{
-						Name:  "st8ge",
-						Image: task.Image,
-						Env: []v1.EnvVar{
-							v1.EnvVar{
-								Name:  "DOWNLOAD_URL",
-								Value: task.Env["DOWNLOAD_URL"],
-							},
-							v1.EnvVar{
-								Name:  "UPLOAD_URL",
-								Value: task.Env["UPLOAD_URL"],
-							},
-							v1.EnvVar{
-								Name:  "APP_ID",
-								Value: task.Env["APP_ID"],
-							},
-							v1.EnvVar{
-								Name:  "STAGING_GUID",
-								Value: task.Env["STAGING_GUID"],
-							},
-							v1.EnvVar{
-								Name:  "CF_USERNAME",
-								Value: task.Env["CF_USERNAME"],
-							},
-							v1.EnvVar{
-								Name:  "CF_PASSWORD",
-								Value: task.Env["CF_PASSWORD"],
-							},
-							v1.EnvVar{
-								Name:  "API_ADDRESS",
-								Value: task.Env["API_ADDRESS"],
-							},
-						},
+						Name:            "st8ge",
+						Image:           task.Image,
+						Env:             mapToEnvVar(task.Env),
+						ImagePullPolicy: "Always",
 					}},
 					RestartPolicy: "Never",
 				},
@@ -90,7 +64,7 @@ func toJob(task opi.Task) *batch.Job {
 		},
 	}
 
-	job.Name = task.Env["STAGING_GUID"]
+	job.Name = task.Env["APP_ID"]
 
 	job.Spec.Template.Labels = map[string]string{
 		"name": task.Env["APP_ID"],
@@ -101,4 +75,13 @@ func toJob(task opi.Task) *batch.Job {
 		"name": task.Env["APP_ID"],
 	}
 	return job
+}
+
+func mapToEnvVar(env map[string]string) []v1.EnvVar {
+	envVars := []v1.EnvVar{}
+	for k, v := range env {
+		envVar := v1.EnvVar{Name: k, Value: v}
+		envVars = append(envVars, envVar)
+	}
+	return envVars
 }

@@ -2,8 +2,12 @@ package main
 
 import (
 	"archive/zip"
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -11,6 +15,8 @@ import (
 	"github.com/JulzDiverse/cfclient"
 	"github.com/pkg/errors"
 	"github.com/starkandwayne/goutils/ansi"
+
+	"code.cloudfoundry.org/bbs/models"
 )
 
 func main() {
@@ -23,6 +29,7 @@ func main() {
 	username := os.Getenv("CF_USERNAME")
 	password := os.Getenv("CF_PASSWORD")
 	apiAddress := os.Getenv("API_ADDRESS")
+	cubeAddress := os.Getenv("CUBE_ADDRESS")
 
 	fmt.Println("STARTING WITH:", downloadUrl, uploadUrl, appId, stagingGuid, completionCallback)
 
@@ -64,6 +71,51 @@ func main() {
 	fmt.Println("Start Upload Process.")
 	err = uploader.Upload(appId, "/out/droplet.tgz")
 	exitWithError(err)
+
+	fmt.Println("Upload successful!")
+	result, err := readResultJson("/out/result.json")
+	exitWithError(err)
+
+	stagingCompleteResponse(cubeAddress, stagingGuid, result)
+	fmt.Println("Staging completed")
+}
+
+func readResultJson(path string) ([]byte, error) {
+	file, err := ioutil.ReadFile(path)
+	if err != nil {
+		return []byte{}, errors.Wrap(err, "failed to read result.json")
+	}
+	return file, nil
+}
+
+func stagingCompleteResponse(cubeAddress string, stagingGuid string, result []byte) error {
+	callbackResponse := models.TaskCallbackResponse{
+		TaskGuid: stagingGuid,
+		Result:   string(result[:len(result)]),
+		Failed:   false,
+	}
+
+	jsonBytes := new(bytes.Buffer)
+	json.NewEncoder(jsonBytes).Encode(callbackResponse)
+
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/staging/%s/completed", cubeAddress, stagingGuid), jsonBytes)
+	if err != nil {
+		return errors.Wrap(err, "failed to create request")
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	client := http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return errors.Wrap(err, "request failed")
+	}
+
+	if resp.StatusCode >= 400 {
+		return errors.New("Request not successful")
+	}
+
+	return nil
 }
 
 //TODO: Don't use this unzipper it does weired stuff. Needs to be reimplemented.

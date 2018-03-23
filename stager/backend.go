@@ -45,15 +45,15 @@ func (b backend) CreateStagingTask(stagingGuid string, request cc_messages.Stagi
 		Env: map[string]string{
 			"DOWNLOAD_URL":        lifecycleData.AppBitsDownloadUri,
 			"UPLOAD_URL":          lifecycleData.DropletUploadUri,
-			"APP_ID":              request.AppId,
+			"APP_ID":              request.LogGuid,
 			"STAGING_GUID":        stagingGuid,
 			"COMPLETION_CALLBACK": request.CompletionCallback,
 			"CF_USERNAME":         b.config.CfUsername,
 			"CF_PASSWORD":         b.config.CfPassword,
 			"API_ADDRESS":         b.config.ApiAddress,
+			"CUBE_ADDRESS":        "http://10.244.0.142:8085",
 		},
 	}
-
 	return stagingTask, nil
 }
 
