@@ -8,7 +8,7 @@ import (
 	"code.cloudfoundry.org/lager"
 	"github.com/julz/cube"
 	"github.com/julz/cube/k8s"
-	"github.com/julz/cube/stager"
+	"github.com/julz/cube/st8ger"
 	"github.com/urfave/cli"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -23,7 +23,7 @@ func stagingCmd(c *cli.Context) {
 
 	taskDesirer := k8s.TaskDesirer{Client: clientset}
 
-	st8r := stager.Stager{
+	st8 := st8ger.St8ger{
 		taskDesirer,
 	}
 
@@ -37,9 +37,9 @@ func stagingCmd(c *cli.Context) {
 		SkipSslValidation: c.Bool("skipSslValidation"),
 	}
 
-	backend := stager.NewBackend(backendConfig, logger)
+	backend := st8ger.NewBackend(backendConfig, logger)
 
-	handler := stager.New(st8r, backend, logger)
+	handler := st8ger.New(st8, backend, logger)
 
 	log.Fatal(http.ListenAndServe("0.0.0.0:8085", handler))
 }

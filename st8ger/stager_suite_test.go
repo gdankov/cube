@@ -1,4 +1,4 @@
-package stager_test
+package st8ger_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestStager(t *testing.T) {
+func TestSt8ger(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Stager Suite")
+	RunSpecs(t, "St8ger Suite")
 }

@@ -1,4 +1,4 @@
-package stager_test
+package st8ger_test
 
 import (
 	"bytes"
@@ -11,7 +11,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/julz/cube/cubefakes"
 	"github.com/julz/cube/opi"
-	stager "github.com/julz/cube/stager"
+	stager "github.com/julz/cube/st8ger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -24,7 +24,7 @@ var _ = Describe("Handler", func() {
 		client *http.Client
 
 		backend            *cubefakes.FakeBackend
-		stagingClient      *cubefakes.FakeStager
+		stagingClient      *cubefakes.FakeSt8ger
 		responseRecorder   *httptest.ResponseRecorder
 		stagingHandler     *stager.StagingHandler
 		stagingRequestJson string
@@ -34,7 +34,7 @@ var _ = Describe("Handler", func() {
 		logger = lagertest.NewTestLogger("test")
 		client = &http.Client{}
 		backend = new(cubefakes.FakeBackend)
-		stagingClient = new(cubefakes.FakeStager)
+		stagingClient = new(cubefakes.FakeSt8ger)
 		stagingHandler = stager.NewStagingHandler(stagingClient, backend, logger)
 		stagingRequestJson = `{"app_id":"myapp", "lifecycle":"kube-backend"}`
 	})
@@ -75,9 +75,8 @@ var _ = Describe("Handler", func() {
 		})
 
 		It("Serves the POST /v1/staging/:staging_guid/completed endpoint", func() {
-			res, err := http.Post(ts.URL+"/v1/staging/myguid/completed", "nothing", nil)
+			_, err := http.Post(ts.URL+"/v1/staging/myguid/completed", "nothing", nil)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(res.StatusCode).To(Equal(200))
 		})
 	})
 

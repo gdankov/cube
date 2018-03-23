@@ -1,4 +1,4 @@
-package stager_test
+package st8ger_test
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"code.cloudfoundry.org/runtimeschema/cc_messages"
 	"github.com/julz/cube"
 	"github.com/julz/cube/opi"
-	"github.com/julz/cube/stager"
+	"github.com/julz/cube/st8ger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -28,7 +28,7 @@ var _ = Describe("Backend", func() {
 			ApiAddress: "api.mycf.com",
 		}
 
-		backend = stager.NewBackend(config, logger)
+		backend = st8ger.NewBackend(config, logger)
 	})
 
 	Context("CreateStagingTask", func() {
@@ -53,6 +53,7 @@ var _ = Describe("Backend", func() {
 			lifecycleData := json.RawMessage(lifecycleDataJSON)
 			request = cc_messages.StagingRequestFromCC{
 				AppId:              "appid",
+				LogGuid:            "appid",
 				LifecycleData:      &lifecycleData,
 				CompletionCallback: "http://call-me.back",
 			}

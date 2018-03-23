@@ -1,11 +1,11 @@
-package stager_test
+package st8ger_test
 
 import (
 	"context"
 
 	"github.com/julz/cube"
 	"github.com/julz/cube/opi"
-	. "github.com/julz/cube/stager"
+	. "github.com/julz/cube/st8ger"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -16,12 +16,12 @@ var _ = Describe("Stager", func() {
 
 		var (
 			task   opi.Task
-			stager cube.Stager
+			st8ger cube.St8ger
 		)
 
 		BeforeEach(func() {
 			task = opi.Task{}
-			stager = Stager{
+			st8ger = St8ger{
 				Desirer: opi.DesireTaskFunc(func(_ context.Context, tasks []opi.Task) error {
 					return nil
 				}),
@@ -29,7 +29,7 @@ var _ = Describe("Stager", func() {
 		})
 
 		It("converts and desires a staging request to a Task", func() {
-			err := stager.Run(task)
+			err := st8ger.Run(task)
 			Expect(err).ToNot(HaveOccurred())
 		})
 	})

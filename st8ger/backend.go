@@ -1,4 +1,4 @@
-package stager
+package st8ger
 
 import (
 	"encoding/json"

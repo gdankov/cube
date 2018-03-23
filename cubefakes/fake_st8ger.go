@@ -8,7 +8,7 @@ import (
 	"github.com/julz/cube/opi"
 )
 
-type FakeStager struct {
+type FakeSt8ger struct {
 	RunStub        func(task opi.Task) error
 	runMutex       sync.RWMutex
 	runArgsForCall []struct {
@@ -24,7 +24,7 @@ type FakeStager struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeStager) Run(task opi.Task) error {
+func (fake *FakeSt8ger) Run(task opi.Task) error {
 	fake.runMutex.Lock()
 	ret, specificReturn := fake.runReturnsOnCall[len(fake.runArgsForCall)]
 	fake.runArgsForCall = append(fake.runArgsForCall, struct {
@@ -41,26 +41,26 @@ func (fake *FakeStager) Run(task opi.Task) error {
 	return fake.runReturns.result1
 }
 
-func (fake *FakeStager) RunCallCount() int {
+func (fake *FakeSt8ger) RunCallCount() int {
 	fake.runMutex.RLock()
 	defer fake.runMutex.RUnlock()
 	return len(fake.runArgsForCall)
 }
 
-func (fake *FakeStager) RunArgsForCall(i int) opi.Task {
+func (fake *FakeSt8ger) RunArgsForCall(i int) opi.Task {
 	fake.runMutex.RLock()
 	defer fake.runMutex.RUnlock()
 	return fake.runArgsForCall[i].task
 }
 
-func (fake *FakeStager) RunReturns(result1 error) {
+func (fake *FakeSt8ger) RunReturns(result1 error) {
 	fake.RunStub = nil
 	fake.runReturns = struct {
 		result1 error
 	}{result1}
 }
 
-func (fake *FakeStager) RunReturnsOnCall(i int, result1 error) {
+func (fake *FakeSt8ger) RunReturnsOnCall(i int, result1 error) {
 	fake.RunStub = nil
 	if fake.runReturnsOnCall == nil {
 		fake.runReturnsOnCall = make(map[int]struct {
@@ -72,7 +72,7 @@ func (fake *FakeStager) RunReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeStager) Invocations() map[string][][]interface{} {
+func (fake *FakeSt8ger) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.runMutex.RLock()
@@ -84,7 +84,7 @@ func (fake *FakeStager) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
-func (fake *FakeStager) recordInvocation(key string, args []interface{}) {
+func (fake *FakeSt8ger) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
 	if fake.invocations == nil {
@@ -96,4 +96,4 @@ func (fake *FakeStager) recordInvocation(key string, args []interface{}) {
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ cube.Stager = new(FakeStager)
+var _ cube.St8ger = new(FakeSt8ger)

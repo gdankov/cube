@@ -38,8 +38,8 @@ type SyncProperties struct {
 	InsecureSkipVerify bool   `yaml:"insecure_skip_verify"`
 }
 
-//go:generate counterfeiter . Stager
-type Stager interface {
+//go:generate counterfeiter . St8ger
+type St8ger interface {
 	Run(task opi.Task) error
 }
 

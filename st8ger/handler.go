@@ -1,4 +1,4 @@
-package stager
+package st8ger
 
 import (
 	"bytes"
@@ -13,7 +13,7 @@ import (
 	"github.com/julz/cube"
 )
 
-func New(stager cube.Stager, backend cube.Backend, logger lager.Logger) http.Handler {
+func New(stager cube.St8ger, backend cube.Backend, logger lager.Logger) http.Handler {
 	handler := httprouter.New()
 
 	stagingHandler := NewStagingHandler(stager, backend, logger)
@@ -28,12 +28,12 @@ func New(stager cube.Stager, backend cube.Backend, logger lager.Logger) http.Han
 }
 
 type StagingHandler struct {
-	stager  cube.Stager
+	stager  cube.St8ger
 	backend cube.Backend
 	logger  lager.Logger
 }
 
-func NewStagingHandler(stager cube.Stager, backend cube.Backend, logger lager.Logger) *StagingHandler {
+func NewStagingHandler(stager cube.St8ger, backend cube.Backend, logger lager.Logger) *StagingHandler {
 	logger = logger.Session("staging-handler")
 
 	return &StagingHandler{
@@ -138,8 +138,6 @@ func (handler *StagingHandler) StagingComplete(res http.ResponseWriter, req *htt
 
 	logger.Info("staging-complete-request-finished-with-status", lager.Data{"StatusCode": resp.StatusCode})
 	logger.Info("posted-staging-complete")
-
-	//fmt.Println("REQUEST:", string(requestBody))
 }
 
 //Wrap httprouter.Hanlde for testing

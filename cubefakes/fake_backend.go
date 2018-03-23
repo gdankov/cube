@@ -4,6 +4,7 @@ package cubefakes
 import (
 	"sync"
 
+	"code.cloudfoundry.org/bbs/models"
 	"code.cloudfoundry.org/runtimeschema/cc_messages"
 	"github.com/julz/cube"
 	"github.com/julz/cube/opi"
@@ -22,6 +23,19 @@ type FakeBackend struct {
 	}
 	createStagingTaskReturnsOnCall map[int]struct {
 		result1 opi.Task
+		result2 error
+	}
+	BuildStagingResponseStub        func(*models.TaskCallbackResponse) (cc_messages.StagingResponseForCC, error)
+	buildStagingResponseMutex       sync.RWMutex
+	buildStagingResponseArgsForCall []struct {
+		arg1 *models.TaskCallbackResponse
+	}
+	buildStagingResponseReturns struct {
+		result1 cc_messages.StagingResponseForCC
+		result2 error
+	}
+	buildStagingResponseReturnsOnCall map[int]struct {
+		result1 cc_messages.StagingResponseForCC
 		result2 error
 	}
 	invocations      map[string][][]interface{}
@@ -80,11 +94,64 @@ func (fake *FakeBackend) CreateStagingTaskReturnsOnCall(i int, result1 opi.Task,
 	}{result1, result2}
 }
 
+func (fake *FakeBackend) BuildStagingResponse(arg1 *models.TaskCallbackResponse) (cc_messages.StagingResponseForCC, error) {
+	fake.buildStagingResponseMutex.Lock()
+	ret, specificReturn := fake.buildStagingResponseReturnsOnCall[len(fake.buildStagingResponseArgsForCall)]
+	fake.buildStagingResponseArgsForCall = append(fake.buildStagingResponseArgsForCall, struct {
+		arg1 *models.TaskCallbackResponse
+	}{arg1})
+	fake.recordInvocation("BuildStagingResponse", []interface{}{arg1})
+	fake.buildStagingResponseMutex.Unlock()
+	if fake.BuildStagingResponseStub != nil {
+		return fake.BuildStagingResponseStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.buildStagingResponseReturns.result1, fake.buildStagingResponseReturns.result2
+}
+
+func (fake *FakeBackend) BuildStagingResponseCallCount() int {
+	fake.buildStagingResponseMutex.RLock()
+	defer fake.buildStagingResponseMutex.RUnlock()
+	return len(fake.buildStagingResponseArgsForCall)
+}
+
+func (fake *FakeBackend) BuildStagingResponseArgsForCall(i int) *models.TaskCallbackResponse {
+	fake.buildStagingResponseMutex.RLock()
+	defer fake.buildStagingResponseMutex.RUnlock()
+	return fake.buildStagingResponseArgsForCall[i].arg1
+}
+
+func (fake *FakeBackend) BuildStagingResponseReturns(result1 cc_messages.StagingResponseForCC, result2 error) {
+	fake.BuildStagingResponseStub = nil
+	fake.buildStagingResponseReturns = struct {
+		result1 cc_messages.StagingResponseForCC
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeBackend) BuildStagingResponseReturnsOnCall(i int, result1 cc_messages.StagingResponseForCC, result2 error) {
+	fake.BuildStagingResponseStub = nil
+	if fake.buildStagingResponseReturnsOnCall == nil {
+		fake.buildStagingResponseReturnsOnCall = make(map[int]struct {
+			result1 cc_messages.StagingResponseForCC
+			result2 error
+		})
+	}
+	fake.buildStagingResponseReturnsOnCall[i] = struct {
+		result1 cc_messages.StagingResponseForCC
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeBackend) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.createStagingTaskMutex.RLock()
 	defer fake.createStagingTaskMutex.RUnlock()
+	fake.buildStagingResponseMutex.RLock()
+	defer fake.buildStagingResponseMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
