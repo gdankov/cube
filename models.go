@@ -3,6 +3,7 @@ package cube
 import (
 	"net/http"
 
+	"code.cloudfoundry.org/bbs/models"
 	"code.cloudfoundry.org/runtimeschema/cc_messages"
 	"github.com/julz/cube/opi"
 )
@@ -45,6 +46,7 @@ type Stager interface {
 //go:generate counterfeiter . Backend
 type Backend interface {
 	CreateStagingTask(string, cc_messages.StagingRequestFromCC) (opi.Task, error)
+	BuildStagingResponse(*models.TaskCallbackResponse) (cc_messages.StagingResponseForCC, error)
 }
 
 type BackendConfig struct {

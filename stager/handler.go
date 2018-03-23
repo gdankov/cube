@@ -1,11 +1,12 @@
 package stager
 
 import (
+	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 
+	"code.cloudfoundry.org/bbs/models"
 	"code.cloudfoundry.org/lager"
 	"code.cloudfoundry.org/runtimeschema/cc_messages"
 	"github.com/julienschmidt/httprouter"
@@ -89,18 +90,56 @@ func (handler *StagingHandler) StopStaging(resp http.ResponseWriter, req *http.R
 	//TODO
 }
 
-func (handler *StagingHandler) StagingComplete(resp http.ResponseWriter, req *http.Request, ps httprouter.Params) {
+func (handler *StagingHandler) StagingComplete(res http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 	stagingGuid := ps.ByName("staging_guid")
 	logger := handler.logger.Session("staging-complete", lager.Data{"staging-guid": stagingGuid})
 
-	requestBody, err := ioutil.ReadAll(req.Body)
+	task := &models.TaskCallbackResponse{}
+	err := json.NewDecoder(req.Body).Decode(task)
 	if err != nil {
-		logger.Error("read-body-failed", err)
-		resp.WriteHeader(http.StatusInternalServerError)
+		logger.Error("parsing-incoming-task-failed", err)
+		res.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	fmt.Println("REQUEST:", string(requestBody))
+	var annotation cc_messages.StagingTaskAnnotation
+	err = json.Unmarshal([]byte(task.Annotation), &annotation)
+	if err != nil {
+		res.WriteHeader(http.StatusBadRequest)
+		logger.Error("parsing-annotation-failed", err)
+		return
+	}
+
+	response, err := handler.backend.BuildStagingResponse(task)
+	if err != nil {
+		res.WriteHeader(http.StatusInternalServerError)
+		logger.Error("error-creating-staging-response", err)
+		return
+	}
+
+	responseJson, err := json.Marshal(response)
+	if err != nil {
+		res.WriteHeader(http.StatusBadRequest)
+		logger.Error("get-staging-response-failed", err)
+		return
+	}
+
+	request, err := http.NewRequest("POST", annotation.CompletionCallback, bytes.NewBuffer(responseJson))
+	if err != nil {
+		return
+	}
+
+	client := http.Client{}
+	resp, err := client.Do(request)
+	if err != nil {
+		logger.Error("cc-staging-complete-failed", err)
+		return
+	}
+
+	logger.Info("staging-complete-request-finished-with-status", lager.Data{"StatusCode": resp.StatusCode})
+	logger.Info("posted-staging-complete")
+
+	//fmt.Println("REQUEST:", string(requestBody))
 }
 
 //Wrap httprouter.Hanlde for testing

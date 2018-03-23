@@ -17,6 +17,7 @@ import (
 	"github.com/starkandwayne/goutils/ansi"
 
 	"code.cloudfoundry.org/bbs/models"
+	"code.cloudfoundry.org/runtimeschema/cc_messages"
 )
 
 func main() {
@@ -76,7 +77,19 @@ func main() {
 	result, err := readResultJson("/out/result.json")
 	exitWithError(err)
 
-	stagingCompleteResponse(cubeAddress, stagingGuid, result)
+	annotation := cc_messages.StagingTaskAnnotation{
+		CompletionCallback: completionCallback,
+	}
+
+	annotationJson, err := json.Marshal(annotation)
+	exitWithError(err)
+
+	stagingCompleteResponse(
+		cubeAddress,
+		stagingGuid,
+		string(annotationJson[:len(annotationJson)]),
+		string(result[:len(result)]),
+	)
 	fmt.Println("Staging completed")
 }
 
@@ -88,17 +101,19 @@ func readResultJson(path string) ([]byte, error) {
 	return file, nil
 }
 
-func stagingCompleteResponse(cubeAddress string, stagingGuid string, result []byte) error {
+func stagingCompleteResponse(cubeAddress, stagingGuid, annotation string, result string) error {
+
 	callbackResponse := models.TaskCallbackResponse{
-		TaskGuid: stagingGuid,
-		Result:   string(result[:len(result)]),
-		Failed:   false,
+		TaskGuid:   stagingGuid,
+		Result:     result,
+		Failed:     false,
+		Annotation: annotation,
 	}
 
 	jsonBytes := new(bytes.Buffer)
 	json.NewEncoder(jsonBytes).Encode(callbackResponse)
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/staging/%s/completed", cubeAddress, stagingGuid), jsonBytes)
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v1/staging/%s/completed", cubeAddress, stagingGuid), jsonBytes)
 	if err != nil {
 		return errors.Wrap(err, "failed to create request")
 	}

@@ -3,6 +3,7 @@ package stager
 import (
 	"encoding/json"
 
+	"code.cloudfoundry.org/bbs/models"
 	"code.cloudfoundry.org/lager"
 	"code.cloudfoundry.org/runtimeschema/cc_messages"
 	"github.com/julz/cube"
@@ -57,7 +58,11 @@ func (b backend) CreateStagingTask(stagingGuid string, request cc_messages.Stagi
 	return stagingTask, nil
 }
 
-func (b backend) BuildStagingResponse() (cc_messages.StagingResponseForCC, error) {
-	//TODO
-	return cc_messages.StagingResponseForCC{}, nil
+func (b backend) BuildStagingResponse(task *models.TaskCallbackResponse) (cc_messages.StagingResponseForCC, error) {
+	var response cc_messages.StagingResponseForCC
+
+	result := json.RawMessage([]byte(task.Result))
+	response.Result = &result
+
+	return response, nil
 }
