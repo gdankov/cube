@@ -35,6 +35,15 @@ func main() {
 
 	fmt.Println("STARTING WITH:", downloadUrl, uploadUrl, appId, stagingGuid, completionCallback)
 
+	annotation := cc_messages.StagingTaskAnnotation{
+		CompletionCallback: completionCallback,
+	}
+
+	annotationJson, err := json.Marshal(annotation)
+	if err != nil {
+		os.Exit(1)
+	}
+
 	cfclient, err := cfclient.NewClient(&cfclient.Config{
 		SkipSslValidation: true,
 		Username:          username,
@@ -42,23 +51,23 @@ func main() {
 		ApiAddress:        apiAddress,
 	})
 
+	respondWithFailureAndExit(err, stagingGuid, annotationJson)
+
 	downloader := Downloader{cfclient}
 	uploader := Uploader{cfclient}
 
-	exitWithError(err)
-
 	err = downloader.Download(appId, "/workspace/appbits")
-	exitWithError(err)
+	respondWithFailureAndExit(err, stagingGuid, annotationJson)
 
 	// TODO: Replace this with pure-go implementation of an unzipper
 	err = execCmd(
 		"unzip", []string{
 			"/workspace/appbits",
 		})
-	exitWithError(err)
+	respondWithFailureAndExit(err, stagingGuid, annotationJson)
 
 	err = os.Remove("/workspace/appbits")
-	exitWithError(err)
+	respondWithFailureAndExit(err, stagingGuid, annotationJson)
 
 	// TODO: Replace this with an inplace call of packs library
 	err = execCmd(
@@ -68,29 +77,29 @@ func main() {
 			"-outputBuildArtifactsCache", "/cache/cache.tgz",
 			"-outputMetadata", "/out/result.json",
 		})
-	exitWithError(err)
+	respondWithFailureAndExit(err, stagingGuid, annotationJson)
 
 	fmt.Println("Start Upload Process.")
 	err = uploader.Upload(appId, "/out/droplet.tgz")
-	exitWithError(err)
+	respondWithFailureAndExit(err, stagingGuid, annotationJson)
 
 	fmt.Println("Upload successful!")
 	result, err := readResultJson("/out/result.json")
-	exitWithError(err)
+	respondWithFailureAndExit(err, stagingGuid, annotationJson)
 
-	annotation := cc_messages.StagingTaskAnnotation{
-		CompletionCallback: completionCallback,
+	cbResponse := models.TaskCallbackResponse{
+		TaskGuid:   stagingGuid,
+		Result:     string(result[:len(result)]),
+		Failed:     false,
+		Annotation: string(annotationJson[:len(annotationJson)]),
 	}
 
-	annotationJson, err := json.Marshal(annotation)
-	exitWithError(err)
+	err = stagingCompleteResponse(cubeAddress, cbResponse)
+	if err != nil {
+		fmt.Println("Error processsing completion callback:", err.Error())
+		os.Exit(1)
+	}
 
-	stagingCompleteResponse(
-		cubeAddress,
-		stagingGuid,
-		string(annotationJson[:len(annotationJson)]),
-		string(result[:len(result)]),
-	)
 	fmt.Println("Staging completed")
 }
 
@@ -102,19 +111,11 @@ func readResultJson(path string) ([]byte, error) {
 	return file, nil
 }
 
-func stagingCompleteResponse(cubeAddress, stagingGuid, annotation string, result string) error {
-
-	callbackResponse := models.TaskCallbackResponse{
-		TaskGuid:   stagingGuid,
-		Result:     result,
-		Failed:     false,
-		Annotation: annotation,
-	}
-
+func stagingCompleteResponse(cubeAddress string, callbackResponse models.TaskCallbackResponse) error {
 	jsonBytes := new(bytes.Buffer)
 	json.NewEncoder(jsonBytes).Encode(callbackResponse)
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v1/staging/%s/completed", cubeAddress, stagingGuid), jsonBytes)
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v1/staging/%s/completed", cubeAddress, callbackResponse.TaskGuid), jsonBytes)
 	if err != nil {
 		return errors.Wrap(err, "failed to create request")
 	}
@@ -179,8 +180,20 @@ func Unzip(archive, target string) error {
 	return nil
 }
 
-func exitWithError(err error) {
+func respondWithFailureAndExit(err error, stagingGuid string, annotationJson []byte) {
 	if err != nil {
+		cbResponse := models.TaskCallbackResponse{
+			TaskGuid:      stagingGuid,
+			Failed:        true,
+			FailureReason: err.Error(),
+			Annotation:    string(annotationJson[:len(annotationJson)]),
+		}
+
+		if completeErr := stagingCompleteResponse(stagingGuid, cbResponse); completeErr != nil {
+			fmt.Println("Error processsing completion callback:", completeErr.Error())
+			os.Exit(1)
+		}
+
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
