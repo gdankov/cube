@@ -66,5 +66,6 @@ type BackendConfig struct {
 	CfUsername        string
 	CfPassword        string
 	ApiAddress        string
+	CubeAddress       string
 	SkipSslValidation bool
 }

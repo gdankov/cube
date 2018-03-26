@@ -34,6 +34,7 @@ func stagingCmd(c *cli.Context) {
 		CfUsername:        c.String("cf-username"),
 		CfPassword:        c.String("cf-password"),
 		ApiAddress:        c.String("cf-endpoint"),
+		CubeAddress:       c.String("cube-address"),
 		SkipSslValidation: c.Bool("skipSslValidation"),
 	}
 

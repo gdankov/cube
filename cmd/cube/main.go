@@ -87,6 +87,9 @@ func main() {
 					Name:  "cf-endpoint",
 					Value: "https://api.bosh-lite.com",
 				},
+				cli.StringFlag{
+					Name: "cube-address",
+				},
 				cli.BoolFlag{
 					Name: "skipSslValidation",
 				},

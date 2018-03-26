@@ -43,7 +43,7 @@ func (b backend) CreateStagingTask(stagingGuid string, request cc_messages.Stagi
 			cube.EnvCfUsername:         b.config.CfUsername,
 			cube.EnvCfPassword:         b.config.CfPassword,
 			cube.EnvApiAddress:         b.config.ApiAddress,
-			cube.EnvCubeAddress:        "http://10.244.0.142:8085",
+			cube.EnvCubeAddress:        b.config.CubeAddress,
 		},
 	}
 	return stagingTask, nil
