@@ -3,6 +3,7 @@ package k8s
 import (
 	"context"
 
+	"github.com/julz/cube"
 	"github.com/julz/cube/opi"
 	"k8s.io/api/core/v1"
 	av1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -53,7 +54,7 @@ func toJob(task opi.Task) *batch.Job {
 			Template: v1.PodTemplateSpec{
 				Spec: v1.PodSpec{
 					Containers: []v1.Container{{
-						Name:            "st8ge",
+						Name:            "OPI-TASK",
 						Image:           task.Image,
 						Env:             mapToEnvVar(task.Env),
 						ImagePullPolicy: "Always",
@@ -64,15 +65,15 @@ func toJob(task opi.Task) *batch.Job {
 		},
 	}
 
-	job.Name = task.Env["APP_ID"]
+	job.Name = task.Env[cube.EnvAppId]
 
 	job.Spec.Template.Labels = map[string]string{
-		"name": task.Env["APP_ID"],
+		"name": task.Env[cube.EnvAppId],
 	}
 
 	job.Labels = map[string]string{
 		"cube": "cube",
-		"name": task.Env["APP_ID"],
+		"name": task.Env[cube.EnvAppId],
 	}
 	return job
 }

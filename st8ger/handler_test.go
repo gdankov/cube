@@ -80,8 +80,6 @@ var _ = Describe("Handler", func() {
 		})
 	})
 
-	//************END-ROUTER****************
-
 	Context("Stage", func() {
 
 		var (

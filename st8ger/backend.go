@@ -10,15 +10,6 @@ import (
 	"github.com/julz/cube/opi"
 )
 
-//type Config struct {
-//TaskDomain     string
-//StagerURL      string
-//FileServerURL  string
-//CCUploaderURL  string
-//Lifecycles     map[string]string
-//SkipCertVerify bool
-//}
-
 type backend struct {
 	config cube.BackendConfig
 	logger lager.Logger
@@ -44,15 +35,15 @@ func (b backend) CreateStagingTask(stagingGuid string, request cc_messages.Stagi
 	stagingTask := opi.Task{
 		Image: "diegoteam/recipe:build",
 		Env: map[string]string{
-			"DOWNLOAD_URL":        lifecycleData.AppBitsDownloadUri,
-			"UPLOAD_URL":          lifecycleData.DropletUploadUri,
-			"APP_ID":              request.LogGuid,
-			"STAGING_GUID":        stagingGuid,
-			"COMPLETION_CALLBACK": request.CompletionCallback,
-			"CF_USERNAME":         b.config.CfUsername,
-			"CF_PASSWORD":         b.config.CfPassword,
-			"API_ADDRESS":         b.config.ApiAddress,
-			"CUBE_ADDRESS":        "http://10.244.0.142:8085",
+			cube.EnvDownloadUrl:        lifecycleData.AppBitsDownloadUri,
+			cube.EnvUploadUrl:          lifecycleData.DropletUploadUri,
+			cube.EnvAppId:              request.LogGuid,
+			cube.EnvStagingGuid:        stagingGuid,
+			cube.EnvCompletionCallback: request.CompletionCallback,
+			cube.EnvCfUsername:         b.config.CfUsername,
+			cube.EnvCfPassword:         b.config.CfPassword,
+			cube.EnvApiAddress:         b.config.ApiAddress,
+			cube.EnvCubeAddress:        "http://10.244.0.142:8085",
 		},
 	}
 	return stagingTask, nil

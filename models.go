@@ -8,6 +8,19 @@ import (
 	"github.com/julz/cube/opi"
 )
 
+//Environment Variable Names
+const (
+	EnvDownloadUrl        = "DOWNLOAD_URL"
+	EnvUploadUrl          = "UPLOAD_URL"
+	EnvAppId              = "APP_ID"
+	EnvStagingGuid        = "STAGING_GUID"
+	EnvCompletionCallback = "COMPLETION_CALLBACK"
+	EnvCfUsername         = "CF_USERNAME"
+	EnvCfPassword         = "CF_PASSWORD"
+	EnvApiAddress         = "API_ADDRESS"
+	EnvCubeAddress        = "CUBE_ADDRESS"
+)
+
 type AppInfo struct {
 	AppName   string `json:"name"`
 	SpaceName string `json:"space_name"`

@@ -4,9 +4,11 @@ The st8ger implements Staging by running Kubernetes/OPI one-off tasks. It receiv
 
 ## Testing the St8ger on a Lite Environment
 
-1. Get a Bosh-Lite deployment
+1. Get a Bosh-Lite director 
 
-2. Get a Minikube deployment and make sure Bosh-Lite and Minikube are running in the same Network:
+2. Deploy the latest CF with the [cube-release](https://github.com/andrew-edgar/cube-release) to your bosh-lite (follow the instructions in the README).
+
+3. Get a Minikube deployment and make sure Bosh-Lite and Minikube are running in the same Network:
 
   When starting `minikube` you can define a CIDR. You need to make sure that it is in the same subnet as your bosh-lite installation. By default this should be `192.168.50.1/24`. 
 
@@ -14,7 +16,6 @@ The st8ger implements Staging by running Kubernetes/OPI one-off tasks. It receiv
 
   This is important as Cube and Kube need to communicate in both directions.
 
-3. Deploy the latest [cube-release](https://github.com/andrew-edgar/cube-release) to your bosh-lite following the instructions in the README.
 
 4. Push an app to your CF. 
 

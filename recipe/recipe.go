@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 
 	"github.com/JulzDiverse/cfclient"
+	"github.com/julz/cube"
 	"github.com/pkg/errors"
 	"github.com/starkandwayne/goutils/ansi"
 
@@ -21,16 +22,16 @@ import (
 )
 
 func main() {
-	downloadUrl := os.Getenv("DOWNLOAD_URL")
-	uploadUrl := os.Getenv("UPLOAD_URL")
-	appId := os.Getenv("APP_ID")
-	stagingGuid := os.Getenv("STAGING_GUID")
-	completionCallback := os.Getenv("COMPLETION_CALLBACK") //TODO: implement callback path
+	downloadUrl := os.Getenv(cube.EnvDownloadUrl)
+	uploadUrl := os.Getenv(cube.EnvUploadUrl)
+	appId := os.Getenv(cube.EnvAppId)
+	stagingGuid := os.Getenv(cube.EnvStagingGuid)
+	completionCallback := os.Getenv(cube.EnvCompletionCallback)
 
-	username := os.Getenv("CF_USERNAME")
-	password := os.Getenv("CF_PASSWORD")
-	apiAddress := os.Getenv("API_ADDRESS")
-	cubeAddress := os.Getenv("CUBE_ADDRESS")
+	username := os.Getenv(cube.EnvCfUsername)
+	password := os.Getenv(cube.EnvCfPassword)
+	apiAddress := os.Getenv(cube.EnvApiAddress)
+	cubeAddress := os.Getenv(cube.EnvCubeAddress)
 
 	fmt.Println("STARTING WITH:", downloadUrl, uploadUrl, appId, stagingGuid, completionCallback)
 
@@ -133,7 +134,8 @@ func stagingCompleteResponse(cubeAddress, stagingGuid, annotation string, result
 	return nil
 }
 
-//TODO: Don't use this unzipper it does weired stuff. Needs to be reimplemented.
+//TODO: Don't use this unzipper it does weired stuff.
+//Needs to be reimplemented/improved.
 func Unzip(archive, target string) error {
 	if archive == "" || target == "" {
 		return errors.New("source or destination path not defined")

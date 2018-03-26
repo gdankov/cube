@@ -19,10 +19,8 @@ func New(stager cube.St8ger, backend cube.Backend, logger lager.Logger) http.Han
 	stagingHandler := NewStagingHandler(stager, backend, logger)
 
 	handler.PUT("/v1/staging/:staging_guid", stagingHandler.Stage)
-	handler.DELETE("/v1/staging/:staging_guid", stagingHandler.StopStaging)
 	handler.POST("/v1/staging/:staging_guid/completed", stagingHandler.StagingComplete)
-
-	//stagingCompletedHandler := NewStagingCompletionHandler(logger, ccClient, backends, clock)
+	handler.DELETE("/v1/staging/:staging_guid", stagingHandler.StopStaging)
 
 	return handler
 }
@@ -86,10 +84,6 @@ func (handler *StagingHandler) Stage(resp http.ResponseWriter, req *http.Request
 	resp.WriteHeader(http.StatusAccepted)
 }
 
-func (handler *StagingHandler) StopStaging(resp http.ResponseWriter, req *http.Request, ps httprouter.Params) {
-	//TODO
-}
-
 func (handler *StagingHandler) StagingComplete(res http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 	stagingGuid := ps.ByName("staging_guid")
 	logger := handler.logger.Session("staging-complete", lager.Data{"staging-guid": stagingGuid})
@@ -140,9 +134,6 @@ func (handler *StagingHandler) StagingComplete(res http.ResponseWriter, req *htt
 	logger.Info("posted-staging-complete")
 }
 
-//Wrap httprouter.Hanlde for testing
-func TestHandler(f httprouter.Handle) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		f(w, r, nil)
-	}
+func (handler *StagingHandler) StopStaging(resp http.ResponseWriter, req *http.Request, ps httprouter.Params) {
+	//TODO
 }
