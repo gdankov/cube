@@ -61,7 +61,7 @@ func dropletToImageURI(
 
 	digest := stageRequest(client, registryUrl, appInfo, msg.DropletHash, dropletBytes, log)
 
-	return fmt.Sprintf("10.244.0.142:8080/cloudfoundry/app-name:%s", digest)
+	return fmt.Sprintf("10.244.0.142:8080/cloudfoundry/app-name@%s", digest)
 }
 
 func stageRequest(
