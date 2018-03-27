@@ -60,7 +60,7 @@ func dropletToImageURI(
 
 	stageRequest(client, registryUrl, appInfo, msg.DropletHash, dropletBytes, log)
 
-	return fmt.Sprintf("cube-registry.service.cf.internal/cloudfoundry/app-guid:%s", msg.DropletHash)
+	return fmt.Sprintf("10.244.0.142:8080/cloudfoundry/%s:%s", appInfo.AppGuid, msg.DropletHash)
 }
 
 func stageRequest(
@@ -81,7 +81,7 @@ func stageRequest(
 		panic(err)
 	}
 
-	req.Header.Set("Content-Type", "plain/text")
+	req.Header.Set("Content-Type", "application/gzip")
 
 	resp, err := client.Do(req)
 	if err != nil {
