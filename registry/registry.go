@@ -34,10 +34,12 @@ type DropletStore interface {
 
 func NewHandler(rootfsBlob BlobRef, dropletStore DropletStore, blobs BlobStore) http.Handler {
 	mux := mux.NewRouter()
+	stager := Stager{blobs, dropletStore}
 	mux.Path("/v2").HandlerFunc(Ping)
-	mux.Path("/v2/{space}/{app}/blobs/").Methods("POST").Handler(Stager{blobs, dropletStore})
+	mux.Path("/v2/{space}/{app}/blobs/").Methods("POST").Handler(stager)
 	mux.Path("/v2/{space}/{app}/blobs/{digest}").Methods("GET").Handler(BlobHandler{blobs})
 	mux.Path("/v2/{space}/{app}/manifests/{guid}").Handler(ManifestHandler{Rootfs: rootfsBlob, DropletStore: dropletStore, BlobStore: blobs})
+	mux.Path("/v2/lookup/{guid}").Methods("GET").HandlerFunc(stager.Lookup)
 
 	return mux
 }
@@ -200,6 +202,18 @@ func (s Stager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	})
 
 	w.WriteHeader(http.StatusCreated)
+
+	fmt.Fprintf(w, digest)
+}
+
+func (s *Stager) Lookup(w http.ResponseWriter, r *http.Request) {
+	dropletGuid := mux.Vars(r)["guid"]
+	blobref := s.droplets.Get(dropletGuid)
+	if blobref == nil {
+		fmt.Fprintf(w, "no entry for guid %s", dropletGuid)
+		return
+	}
+	fmt.Fprintf(w, blobref.Digest)
 }
 
 // InMemoryDropletStore exists because CC droplets aren't content-addressed

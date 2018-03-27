@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 
 	"code.cloudfoundry.org/lager"
@@ -58,9 +59,9 @@ func dropletToImageURI(
 		panic(err)
 	}
 
-	stageRequest(client, registryUrl, appInfo, msg.DropletHash, dropletBytes, log)
+	digest := stageRequest(client, registryUrl, appInfo, msg.DropletHash, dropletBytes, log)
 
-	return fmt.Sprintf("10.244.0.142:8080/cloudfoundry/%s:%s", appInfo.AppGuid, msg.DropletHash)
+	return fmt.Sprintf("10.244.0.142:8080/cloudfoundry/app-name:%s", digest)
 }
 
 func stageRequest(
@@ -70,7 +71,7 @@ func stageRequest(
 	dropletHash string,
 	dropletBytes []byte,
 	log lager.Logger,
-) {
+) string {
 	registryStageUri := registryStageUri(registryUrl, appInfo.SpaceName, appInfo.AppName, dropletHash)
 
 	log.Info("sending-request-to-registry", lager.Data{"request": registryStageUri})
@@ -86,10 +87,19 @@ func stageRequest(
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Error("stage-request-to-registry-failed", err, lager.Data{"request": registryStageUri})
-		return
+		return ""
 	}
 
 	log.Info("request-successful", lager.Data{"response_status": resp.StatusCode})
+
+	digest, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Error("read-response-failed", err)
+		return ""
+	}
+
+	return string(digest)
+
 }
 
 func dropletDownloadUri(baseUrl string, appGuid string) string {
