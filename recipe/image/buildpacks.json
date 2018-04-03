@@ -9,7 +9,7 @@
   },
   {
     "name": "ruby_buildpack",
-    "uri": "https://github.com/cloudfoundry/ruby-buildpack/releases/download/v1.7.14/ruby-buildpack-v1.7.14.zip"
+    "uri": "https://github.com/cloudfoundry/ruby-buildpack/releases/download/v1.7.15/ruby-buildpack-v1.7.15.zip"
   },
   {
     "name": "nodejs_buildpack",

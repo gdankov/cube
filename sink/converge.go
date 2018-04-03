@@ -2,6 +2,7 @@ package sink
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"code.cloudfoundry.org/lager"
@@ -29,6 +30,7 @@ func (c *Converger) ConvergeOnce(ctx context.Context, ccMessages []cc_messages.D
 	desire := make([]opi.LRP, 0)
 	for _, msg := range ccMessages {
 		lrp := c.convertMessage(msg)
+		fmt.Println("LRP:", lrp)
 		desire = append(desire, lrp)
 	}
 	return c.Desirer.Desire(ctx, desire)

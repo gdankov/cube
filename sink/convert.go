@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"code.cloudfoundry.org/bbs/models"
 	"code.cloudfoundry.org/lager"
 	"code.cloudfoundry.org/runtimeschema/cc_messages"
 	"github.com/julz/cube"
@@ -28,11 +29,24 @@ func Convert(
 		msg.DockerImageUrl = dropletToImageURI(msg, cfClient, client, registryUrl, log)
 	}
 
+	fmt.Println("StartCommand:", msg.StartCommand, "ExecutionMeta:", msg.ExecutionMetadata)
 	return opi.LRP{
 		Name:            msg.ProcessGuid,
 		Image:           msg.DockerImageUrl,
 		TargetInstances: msg.NumInstances,
+		Command: []string{
+			msg.StartCommand,
+		},
+		Env: envVarsToMap(msg.Environment),
 	}
+}
+
+func envVarsToMap(envs []*models.EnvironmentVariable) map[string]string {
+	envMap := map[string]string{}
+	for _, v := range envs {
+		envMap[v.Name] = v.Value
+	}
+	return envMap
 }
 
 func dropletToImageURI(
@@ -59,9 +73,10 @@ func dropletToImageURI(
 		panic(err)
 	}
 
-	digest := stageRequest(client, registryUrl, appInfo, msg.DropletHash, dropletBytes, log)
+	stageRequest(client, registryUrl, appInfo, msg.DropletHash, dropletBytes, log)
 
-	return fmt.Sprintf("10.244.0.142:8080/cloudfoundry/app-name@%s", digest)
+	return fmt.Sprintf("10.244.0.142:8080/cloudfoundry/app-name:%s", msg.DropletHash)
+
 }
 
 func stageRequest(

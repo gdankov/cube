@@ -23,6 +23,7 @@ type BlobRef struct {
 
 type BlobStore interface {
 	Put(buf io.Reader) (digest string, size int64, err error)
+	PutWithId(guid string, buf io.Reader) (digest string, size int64, err error)
 	Has(digest string) bool
 	Get(digest string, dest io.Writer) error
 }
@@ -37,7 +38,7 @@ func NewHandler(rootfsBlob BlobRef, dropletStore DropletStore, blobs BlobStore) 
 	stager := Stager{blobs, dropletStore}
 	mux.Path("/v2").HandlerFunc(Ping)
 	mux.Path("/v2/{space}/{app}/blobs/").Methods("POST").Handler(stager)
-	mux.Path("/v2/{space}/{app}/blobs/{digest}").Methods("GET").Handler(BlobHandler{blobs})
+	mux.Path("/v2/{space}/{app}/blobs/{guid}").Methods("GET").Handler(BlobHandler{blobs})
 	mux.Path("/v2/{space}/{app}/manifests/{guid}").Handler(ManifestHandler{Rootfs: rootfsBlob, DropletStore: dropletStore, BlobStore: blobs})
 	mux.Path("/v2/lookup/{guid}").Methods("GET").HandlerFunc(stager.Lookup)
 
@@ -56,7 +57,7 @@ type BlobHandler struct {
 
 func (b BlobHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	digest := vars["digest"]
+	digest := vars["guid"] //TODO: rename digest
 
 	if !b.blobs.Has(digest) {
 		http.NotFound(w, r)
@@ -99,6 +100,8 @@ func (b ManifestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println("ConfigDigest:", configDigest, "configSize:", configSize)
+
 	w.Header().Add("Content-Type", "application/vnd.docker.distribution.manifest.v2+json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"mediaType":     "application/vnd.docker.distribution.manifest.v2+json",
@@ -116,7 +119,7 @@ func (b ManifestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			},
 			{
 				"digest":    droplet.Digest,
-				"mediaType": "application/vnd.docker.image.rootfs.diff.tar",
+				"mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
 				"size":      droplet.Size,
 			},
 		},
@@ -189,6 +192,12 @@ func (s Stager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer layerTar.Close()
 
 	digest, size, err := s.blobs.Put(layerTar)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	_, _, err = s.blobs.PutWithId(guid, layerTar)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
