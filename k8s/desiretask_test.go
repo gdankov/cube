@@ -41,7 +41,7 @@ var _ = Describe("Desiretask", func() {
 
 	It("creates jobs for every task in the array", func() {
 		Expect(desirer.Desire(context.Background(), []opi.Task{
-			{Image: "pi", Command: []string{}, Env: map[string]string{"APP_ID": "test", "STAGING_GUID": "guid"}},
+			{Image: "pi", Command: []string{}, Env: map[string]string{"APP_ID": "guid", "STAGING_GUID": "guid"}},
 		})).To(Succeed())
 
 		deployments, err := client.AppsV1beta1().Deployments("default").List(av1.ListOptions{})

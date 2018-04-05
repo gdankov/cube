@@ -3,6 +3,7 @@ package k8s
 import (
 	"context"
 
+	"github.com/julz/cube/launcher"
 	"github.com/julz/cube/opi"
 	"k8s.io/api/apps/v1beta1"
 	"k8s.io/api/core/v1"
@@ -40,6 +41,7 @@ func (d *Desirer) Desire(ctx context.Context, lrps []opi.LRP) error {
 }
 
 func toDeployment(lrp opi.LRP) *v1beta1.Deployment {
+	environment := launcher.SetupEnv(lrp.Command[0])
 	deployment := &v1beta1.Deployment{
 		Spec: v1beta1.DeploymentSpec{
 			Replicas: int32ptr(lrp.TargetInstances),
@@ -48,6 +50,17 @@ func toDeployment(lrp opi.LRP) *v1beta1.Deployment {
 					Containers: []v1.Container{{
 						Name:  "web",
 						Image: lrp.Image,
+						Command: []string{
+							launcher.Launch,
+						},
+						Env: mapToEnvVar(mergeMaps(lrp.Env, environment)),
+						//ImagePullPolicy: "Always",
+						Ports: []v1.ContainerPort{
+							v1.ContainerPort{
+								Name:          "expose",
+								ContainerPort: 8080,
+							},
+						},
 					}},
 				},
 			},
@@ -65,6 +78,16 @@ func toDeployment(lrp opi.LRP) *v1beta1.Deployment {
 	}
 
 	return deployment
+}
+
+func mergeMaps(maps ...map[string]string) map[string]string {
+	result := make(map[string]string)
+	for _, m := range maps {
+		for k, v := range m {
+			result[k] = v
+		}
+	}
+	return result
 }
 
 func int32ptr(i int) *int32 {

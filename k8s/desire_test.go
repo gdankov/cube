@@ -37,8 +37,8 @@ var _ = Describe("Desiring some LRPs", func() {
 
 	It("Creates deployments for every LRP in the array", func() {
 		Expect(desirer.Desire(context.Background(), []opi.LRP{
-			{Name: "app0", Image: "busybox", TargetInstances: 1},
-			{Name: "app1", Image: "busybox", TargetInstances: 3},
+			{Name: "app0", Image: "busybox", TargetInstances: 1, Command: []string{""}},
+			{Name: "app1", Image: "busybox", TargetInstances: 3, Command: []string{""}},
 		})).To(Succeed())
 
 		deployments, err := client.AppsV1beta1().Deployments("default").List(av1.ListOptions{})
@@ -50,8 +50,8 @@ var _ = Describe("Desiring some LRPs", func() {
 	It("Doesn't error when the deployment already exists", func() {
 		for i := 0; i < 2; i++ {
 			Expect(desirer.Desire(context.Background(), []opi.LRP{
-				{Name: "app0", Image: "busybox", TargetInstances: 1},
-				{Name: "app1", Image: "busybox", TargetInstances: 3},
+				{Name: "app0", Image: "busybox", TargetInstances: 1, Command: []string{""}},
+				{Name: "app1", Image: "busybox", TargetInstances: 3, Command: []string{""}},
 			})).To(Succeed())
 		}
 	})
