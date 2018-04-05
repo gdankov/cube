@@ -2,9 +2,8 @@ package k8s
 
 import (
 	"context"
-	"fmt"
-	"strings"
 
+	"github.com/julz/cube/launcher"
 	"github.com/julz/cube/opi"
 	"k8s.io/api/apps/v1beta1"
 	"k8s.io/api/core/v1"
@@ -24,11 +23,11 @@ func (d *Desirer) Desire(ctx context.Context, lrps []opi.LRP) error {
 
 	dByName := make(map[string]struct{})
 	for _, d := range deployments.Items {
-		dByName[d.Name] = struct{}{}
+		dByName["cf-"+d.Name] = struct{}{} //prefix it with cf, because in kube dns entries are not allowed to start with numerical characters.
 	}
 
 	for _, lrp := range lrps {
-		if _, ok := dByName[lrp.Name]; ok {
+		if _, ok := dByName["cf-"+lrp.Name]; ok {
 			continue
 		}
 
@@ -42,7 +41,7 @@ func (d *Desirer) Desire(ctx context.Context, lrps []opi.LRP) error {
 }
 
 func toDeployment(lrp opi.LRP) *v1beta1.Deployment {
-	//command, args := splitCommandAndArgs(lrp.Command[0])
+	environment := launcher.SetupEnv(lrp.Command[0])
 	deployment := &v1beta1.Deployment{
 		Spec: v1beta1.DeploymentSpec{
 			Replicas: int32ptr(lrp.TargetInstances),
@@ -52,21 +51,22 @@ func toDeployment(lrp opi.LRP) *v1beta1.Deployment {
 						Name:  "web",
 						Image: lrp.Image,
 						Command: []string{
-							"/bin/bash",
-						}, //command,
-						Args: []string{
-							"-c",
-							fmt.Sprintf("%s %s", launch, lrp.Command[0]),
-						}, //args,
-						Env:             mapToEnvVar(lrp.Env),
-						ImagePullPolicy: "Always",
+							launcher.Launch,
+						},
+						Env: mapToEnvVar(mergeMaps(lrp.Env, environment)),
+						//ImagePullPolicy: "Always",
+						Ports: []v1.ContainerPort{
+							v1.ContainerPort{
+								Name:          "expose",
+								ContainerPort: 8080,
+								//HostPort:      8080, //TODO
+							},
+						},
 					}},
 				},
 			},
 		},
 	}
-
-	fmt.Println("PROVIDED ENV VARS:", lrp.Env)
 
 	deployment.Name = lrp.Name
 	deployment.Spec.Template.Labels = map[string]string{
@@ -81,9 +81,14 @@ func toDeployment(lrp opi.LRP) *v1beta1.Deployment {
 	return deployment
 }
 
-func splitCommandAndArgs(cmd string) ([]string, []string) {
-	all := strings.Split(cmd, " ")
-	return []string{"app/bin/" + all[0]}, all[1:len(all)]
+func mergeMaps(maps ...map[string]string) map[string]string {
+	result := make(map[string]string)
+	for _, m := range maps {
+		for k, v := range m {
+			result[k] = v
+		}
+	}
+	return result
 }
 
 func int32ptr(i int) *int32 {
@@ -95,41 +100,3 @@ func int64ptr(i int) *int64 {
 	u := int64(i)
 	return &u
 }
-
-const launch = `
-cd /home/vcap/app
-
-HOME=/home/vcap
-PATH=/usr/local/bin:/usr/bin:/bin
-USER=vcap
-BUNDLE_GEMFILE=/home/vcap/app/Gemfile
-CF_INSTANCE_INTERNAL_IP=0.0.0.0
-CF_INSTANCE_IP=0.0.0.0
-CF_STACK=cflinuxfs2
-HOME=/home/vcap/app
-
-echo "launching app.."
-
-DEPS_DIR=../deps
-
-if [ -n "$(ls ../profile.d/* 2> /dev/null)" ]; then
-  for env_file in ../profile.d/*; do
-    source $env_file
-	  done
-fi
-
-if [ -n "$(ls .profile.d/* 2> /dev/null)" ]; then
-  for env_file in .profile.d/*; do
-    source $env_file
-	  done
-fi
-
-if [ -f .profile ]; then
-  source .profile
-fi
-
-echo "deps dir: $DEPS_DIR"
-
-echo "executing command $@"
-exec bash -c "bundle exec rackup config.ru -p 8080"
-`

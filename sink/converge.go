@@ -2,7 +2,6 @@ package sink
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"code.cloudfoundry.org/lager"
@@ -18,6 +17,7 @@ type Converger struct {
 	Client      *http.Client
 	Logger      lager.Logger
 	RegistryUrl string
+	RegistryIP  string
 }
 
 // this is a brain-dead simple initial implementation, obviously
@@ -30,7 +30,6 @@ func (c *Converger) ConvergeOnce(ctx context.Context, ccMessages []cc_messages.D
 	desire := make([]opi.LRP, 0)
 	for _, msg := range ccMessages {
 		lrp := c.convertMessage(msg)
-		fmt.Println("LRP:", lrp)
 		desire = append(desire, lrp)
 	}
 	return c.Desirer.Desire(ctx, desire)
@@ -46,15 +45,15 @@ func (c *Converger) convertMessage(msg cc_messages.DesireAppRequestFromCC) opi.L
 			}
 		}
 	}()
-	return c.Converter.Convert(msg, c.RegistryUrl, c.CfClient, c.Client, c.Logger)
+	return c.Converter.Convert(msg, c.RegistryUrl, c.RegistryIP, c.CfClient, c.Client, c.Logger)
 }
 
 type Converter interface {
-	Convert(cc cc_messages.DesireAppRequestFromCC, registryUrl string, cfClient cube.CfClient, client *http.Client, log lager.Logger) opi.LRP
+	Convert(cc cc_messages.DesireAppRequestFromCC, registryUrl string, registryIP string, cfClient cube.CfClient, client *http.Client, log lager.Logger) opi.LRP
 }
 
-type ConvertFunc func(cc cc_messages.DesireAppRequestFromCC, registryUrl string, cfClient cube.CfClient, client *http.Client, log lager.Logger) opi.LRP
+type ConvertFunc func(cc cc_messages.DesireAppRequestFromCC, registryUrl string, registryIP string, cfClient cube.CfClient, client *http.Client, log lager.Logger) opi.LRP
 
-func (fn ConvertFunc) Convert(cc cc_messages.DesireAppRequestFromCC, registryUrl string, cfClient cube.CfClient, client *http.Client, log lager.Logger) opi.LRP {
-	return fn(cc, registryUrl, cfClient, client, log)
+func (fn ConvertFunc) Convert(cc cc_messages.DesireAppRequestFromCC, registryUrl string, registryIP string, cfClient cube.CfClient, client *http.Client, log lager.Logger) opi.LRP {
+	return fn(cc, registryUrl, registryIP, cfClient, client, log)
 }

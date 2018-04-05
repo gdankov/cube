@@ -39,9 +39,9 @@ var _ = Describe("Desiretask", func() {
 		desirer.DeleteJob("guid")
 	})
 
-	It("Creates deployments for every LRP in the array", func() {
+	It("Creates deployments for every Task in the array", func() {
 		Expect(desirer.Desire(context.Background(), []opi.Task{
-			{Image: "pi", Command: []string{}, Env: map[string]string{"APP_ID": "test", "STAGING_GUID": "guid"}},
+			{Image: "pi", Command: []string{}, Env: map[string]string{"APP_ID": "guid", "STAGING_GUID": "guid"}},
 		})).To(Succeed())
 
 		deployments, err := client.AppsV1beta1().Deployments("default").List(av1.ListOptions{})

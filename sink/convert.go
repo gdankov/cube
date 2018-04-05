@@ -17,6 +17,7 @@ import (
 func Convert(
 	msg cc_messages.DesireAppRequestFromCC,
 	registryUrl string,
+	registryIP string,
 	cfClient cube.CfClient,
 	client *http.Client,
 	log lager.Logger,
@@ -26,10 +27,9 @@ func Convert(
 	}
 
 	if msg.DockerImageUrl == "" {
-		msg.DockerImageUrl = dropletToImageURI(msg, cfClient, client, registryUrl, log)
+		msg.DockerImageUrl = dropletToImageURI(msg, cfClient, client, registryUrl, registryIP, log)
 	}
 
-	fmt.Println("StartCommand:", msg.StartCommand, "ExecutionMeta:", msg.ExecutionMetadata)
 	return opi.LRP{
 		Name:            msg.ProcessGuid,
 		Image:           msg.DockerImageUrl,
@@ -54,6 +54,7 @@ func dropletToImageURI(
 	cfClient cube.CfClient,
 	client *http.Client,
 	registryUrl string,
+	registryIP string,
 	log lager.Logger,
 ) string {
 	var appInfo cube.AppInfo
@@ -75,8 +76,7 @@ func dropletToImageURI(
 
 	stageRequest(client, registryUrl, appInfo, msg.DropletHash, dropletBytes, log)
 
-	return fmt.Sprintf("10.244.0.142:8080/cloudfoundry/app-name:%s", msg.DropletHash)
-
+	return fmt.Sprintf("%s:8080/cloudfoundry/app-name:%s", registryIP, msg.DropletHash)
 }
 
 func stageRequest(
