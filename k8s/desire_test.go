@@ -47,6 +47,12 @@ var _ = Describe("Desiring some LRPs", func() {
 		Expect(deployments.Items).To(HaveLen(2))
 	})
 
+	It("creates services for every deployment", func() {
+		services, err := client.CoreV1().Services("default").List(av1.ListOptions{})
+		Expect(err).ToNot(HaveOccurred())
+		Expect(services.Items).To(HaveLen(3)) //two deployments + default kubernetes service
+	})
+
 	It("Doesn't error when the deployment already exists", func() {
 		for i := 0; i < 2; i++ {
 			Expect(desirer.Desire(context.Background(), []opi.LRP{

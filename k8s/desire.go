@@ -35,6 +35,10 @@ func (d *Desirer) Desire(ctx context.Context, lrps []opi.LRP) error {
 			// fixme: this should be a multi-error and deferred
 			return err
 		}
+
+		if _, err = d.Client.CoreV1().Services("default").Create(exposeDeployment(lrp)); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -54,7 +58,6 @@ func toDeployment(lrp opi.LRP) *v1beta1.Deployment {
 							launcher.Launch,
 						},
 						Env: mapToEnvVar(mergeMaps(lrp.Env, environment)),
-						//ImagePullPolicy: "Always",
 						Ports: []v1.ContainerPort{
 							v1.ContainerPort{
 								Name:          "expose",
@@ -78,6 +81,39 @@ func toDeployment(lrp opi.LRP) *v1beta1.Deployment {
 	}
 
 	return deployment
+}
+
+func exposeDeployment(lrp opi.LRP) *v1.Service {
+	service := &v1.Service{
+		Spec: v1.ServiceSpec{
+			ExternalTrafficPolicy: "Cluster",
+			Ports: []v1.ServicePort{
+				v1.ServicePort{
+					Port:     8080,
+					Protocol: v1.ProtocolTCP,
+				},
+			},
+			Selector: map[string]string{
+				"name": lrp.Name,
+			},
+			SessionAffinity: "None",
+			Type:            "NodePort",
+		},
+		Status: v1.ServiceStatus{
+			LoadBalancer: v1.LoadBalancerStatus{},
+		},
+	}
+
+	service.APIVersion = "v1"
+	service.Kind = "Service"
+	service.Name = lrp.Name
+	service.Namespace = "default"
+	service.Labels = map[string]string{
+		"cube": "cube",
+		"name": lrp.Name,
+	}
+
+	return service
 }
 
 func mergeMaps(maps ...map[string]string) map[string]string {
