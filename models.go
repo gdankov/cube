@@ -47,6 +47,7 @@ type SyncProperties struct {
 	CfPassword         string `yaml:"cf_password"`
 	CcUser             string `yaml:"cc_internal_user"`
 	CcPassword         string `yaml:"cc_internal_password"`
+	ExternalAddress    string `yaml:"external_cube_address"`
 	SkipSslValidation  bool   `yaml:"skip_ssl_validation"`
 	InsecureSkipVerify bool   `yaml:"insecure_skip_verify"`
 }

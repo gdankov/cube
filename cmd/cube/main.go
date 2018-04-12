@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -10,6 +11,9 @@ import (
 )
 
 func main() {
+	selfIp, err := getIP()
+	exitWithError(err)
+
 	app := cli.NewApp()
 	app.Name = "cube"
 	app.Usage = "Cube - the CF experience, on any scheduler"
@@ -58,6 +62,11 @@ func main() {
 				},
 				cli.BoolFlag{
 					Name: "skipSslValidation",
+				},
+				cli.StringFlag{
+					Name:  "externalCubeAddress",
+					Value: fmt.Sprintf("%s:8080", selfIp),
+					Usage: "The external cube address which will be used by kubernetes to pull images. <host>:<port>",
 				},
 				cli.StringFlag{
 					Name:  "config",

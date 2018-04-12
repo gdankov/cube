@@ -76,7 +76,7 @@ func dropletToImageURI(
 
 	stageRequest(client, registryUrl, appInfo, msg.DropletHash, dropletBytes, log)
 
-	return fmt.Sprintf("%s:8080/cloudfoundry/app-name:%s", registryIP, msg.DropletHash)
+	return fmt.Sprintf("%s/cloudfoundry/app-name:%s", registryIP, msg.DropletHash)
 }
 
 func stageRequest(

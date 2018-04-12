@@ -64,17 +64,14 @@ func syncCmd(c *cli.Context) {
 	log := lager.NewLogger("sync")
 	log.RegisterSink(lager.NewWriterSink(os.Stdout, lager.DEBUG))
 
-	regIP, err := getIP()
-	exitWithError(err)
-
 	converger := sink.Converger{
 		Converter:   sink.ConvertFunc(sink.Convert),
 		Desirer:     &k8s.Desirer{Client: clientset},
 		CfClient:    cfClient,
 		Client:      client,
 		Logger:      log,
-		RegistryUrl: "http://127.0.0.1:8080", //for internal use
-		RegistryIP:  regIP,                   //for external use (kube)
+		RegistryUrl: "http://127.0.0.1:8080",         //for internal use
+		RegistryIP:  conf.Properties.ExternalAddress, //for external use (kube)
 	}
 
 	cancel := make(chan struct{})
@@ -129,6 +126,7 @@ func setConfigFromCLI(c *cli.Context) *cube.SyncConfig {
 			CfPassword:         c.String("adminPass"),
 			CcUser:             c.String("ccUser"),
 			CcPassword:         c.String("ccPass"),
+			ExternalAddress:    c.String("externalCubeAddress"),
 			SkipSslValidation:  c.Bool("skipSslValidation"),
 			InsecureSkipVerify: true,
 		},
