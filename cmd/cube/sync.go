@@ -61,6 +61,13 @@ func syncCmd(c *cli.Context) {
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: conf.Properties.InsecureSkipVerify},
 	}}
 
+	//natsPassword := "gjjqystmkiq89n8vrmve"
+	//natsUser := "nats"
+	//natsIp := "10.244.0.129"
+
+	//nc, err := nats.Connect(fmt.Sprintf("nats://%s:%s@%s:4222"), natsUser, natsPassword, natsIp)
+	//exitWithError(err)
+
 	log := lager.NewLogger("sync")
 	log.RegisterSink(lager.NewWriterSink(os.Stdout, lager.DEBUG))
 
