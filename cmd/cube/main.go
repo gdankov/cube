@@ -105,6 +105,21 @@ func main() {
 			},
 			Action: stagingCmd,
 		},
+		{
+			Name:  "route",
+			Usage: "emit routes to cc",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "kube-config",
+					Value: filepath.Join(os.Getenv("HOME"), ".kube", "config"),
+				},
+				cli.StringFlag{
+					Name:  "host",
+					Value: "158.175.95.220",
+				},
+			},
+			Action: routeEmitterCmd,
+		},
 	}
 
 	app.Run(os.Args)
