@@ -97,7 +97,7 @@ var _ = Describe("Unzip function", func() {
 				srcZip = "testdata/unzip_me.zip"
 				targetDir = "testdata/tmp"
 
-				err := os.Mkdir(targetDir, os.ModeDir)
+				err := os.Mkdir(targetDir, 0755)
 				if err != nil {
 					panic(err)
 				}
