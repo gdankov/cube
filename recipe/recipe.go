@@ -1,16 +1,13 @@
 package main
 
 import (
-	"archive/zip"
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
-	"path/filepath"
 
 	"github.com/JulzDiverse/cfclient"
 	"github.com/julz/cube"
@@ -56,16 +53,15 @@ func main() {
 	downloader := Downloader{cfclient}
 	uploader := Uploader{cfclient}
 
-	err = downloader.Download(appId, "/workspace/appbits")
+	appbitsPath := "/workspace/appbits"
+
+	err = downloader.Download(appId, appbitsPath)
 	respondWithFailureAndExit(err, stagingGuid, annotationJson)
 
-	err = execCmd(
-		"unzip", []string{
-			"/workspace/appbits",
-		})
+	err = Unzip(appbitsPath, "")
 	respondWithFailureAndExit(err, stagingGuid, annotationJson)
 
-	err = os.Remove("/workspace/appbits")
+	err = os.Remove(appbitsPath)
 	respondWithFailureAndExit(err, stagingGuid, annotationJson)
 
 	err = execCmd(
