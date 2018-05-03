@@ -51,5 +51,6 @@ func extractFile(src *zip.File, destPath string) error {
 		return err
 	}
 
-	return nil
+	err = os.Chmod(destPath, src.Mode())
+	return err
 }
