@@ -24,7 +24,7 @@ var _ = Describe("Unzip function", func() {
 		err = Unzip(srcZip, targetDir)
 	})
 
-	Context("Unzip secceeds", func() {
+	Context("Unzip succeeds", func() {
 
 		zippedFiles := map[string]string{
 			"file1":                       "this is the content of test file 1",
