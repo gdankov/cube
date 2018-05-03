@@ -99,11 +99,11 @@ var _ = Describe("Unzip function", func() {
 			})
 		}
 
-		Context("When target directory is not specified", func() {
+		Context("When target directory is current working directory", func() {
 
 			BeforeEach(func() {
 				srcZip = "testdata/unzip_me.zip"
-				targetDir = ""
+				targetDir = "."
 			})
 
 			AfterEach(func() {
@@ -136,6 +136,20 @@ var _ = Describe("Unzip function", func() {
 	})
 
 	Context("Unzip fails", func() {
+
+		Context("When target directory is not specified", func() {
+
+			BeforeEach(func() {
+				targetDir = ""
+				srcZip = "testdata/unzip_me.zip"
+			})
+
+			It("should fail", func() {
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError(ContainSubstring("target directory cannot be empty")))
+			})
+		})
+
 		Context("When target dir does not exist", func() {
 
 			BeforeEach(func() {
