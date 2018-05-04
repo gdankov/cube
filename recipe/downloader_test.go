@@ -53,16 +53,16 @@ var _ = Describe("Downloader", func() {
 			})
 
 			AfterEach(func() {
-				err := os.Remove("test/file")
+				err := os.Remove("testdata/file")
 				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("writes the downloaded content to the given file", func() {
-				err := downloader.Download("guid", "test/file")
+				err := downloader.Download("guid", "testdata/file")
 				Expect(err).ToNot(HaveOccurred())
-				Expect("test/file").Should(BeAnExistingFile())
+				Expect("testdata/file").Should(BeAnExistingFile())
 
-				file, err := ioutil.ReadFile("test/file")
+				file, err := ioutil.ReadFile("testdata/file")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(string(file)).To(Equal("appbits"))
 			})
@@ -77,7 +77,7 @@ var _ = Describe("Downloader", func() {
 				})
 
 				It("should error with an corresponding error message", func() {
-					err := downloader.Download("guid", "test/file")
+					err := downloader.Download("guid", "testdata/file")
 					Expect(err).To(HaveOccurred())
 					Expect(err).To(MatchError(ContainSubstring("failed to perform request")))
 				})
@@ -91,7 +91,7 @@ var _ = Describe("Downloader", func() {
 				})
 
 				It("should return an meaningful err message", func() {
-					err := downloader.Download("guid", "test/file")
+					err := downloader.Download("guid", "testdata/file")
 					Expect(err).To(HaveOccurred())
 					Expect(err).To(MatchError(ContainSubstring("Download failed. Status Code")))
 				})
