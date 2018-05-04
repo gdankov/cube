@@ -58,7 +58,7 @@ func main() {
 	err = downloader.Download(appId, appbitsPath)
 	respondWithFailureAndExit(err, stagingGuid, annotationJson)
 
-	err = Unzip(appbitsPath, "")
+	err = Unzip(appbitsPath, "/workspace")
 	respondWithFailureAndExit(err, stagingGuid, annotationJson)
 
 	err = os.Remove(appbitsPath)

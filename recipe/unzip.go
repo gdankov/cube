@@ -2,6 +2,7 @@ package main
 
 import (
 	"archive/zip"
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -10,6 +11,10 @@ import (
 // Unzip extracts a ZIP file located at src into a specified directory. It uses package 'archive/zip' internally.
 // Giving an empty string as the target dir will unzip the contents in the current directory.
 func Unzip(src, targetDir string) error {
+	if targetDir == "" {
+		return errors.New("target directory cannot be empty")
+	}
+
 	reader, err := zip.OpenReader(src)
 	if err != nil {
 		return err
@@ -51,5 +56,6 @@ func extractFile(src *zip.File, destPath string) error {
 		return err
 	}
 
-	return nil
+	err = os.Chmod(destPath, src.Mode())
+	return err
 }

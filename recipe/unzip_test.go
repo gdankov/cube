@@ -24,12 +24,18 @@ var _ = Describe("Unzip function", func() {
 		err = Unzip(srcZip, targetDir)
 	})
 
-	Context("Unzip secceeds", func() {
+	Context("Unzip succeeds", func() {
 
-		zippedFiles := map[string]string{
+		fileContents := map[string]string{
 			"file1":                       "this is the content of test file 1",
 			"innerDir/file2":              "this is the content of test file 2",
 			"innerDir/innermostDir/file3": "this is the content of test file 3",
+		}
+
+		filePermissions := map[string]os.FileMode{
+			"file1":                       0742,
+			"innerDir/file2":              0651,
+			"innerDir/innermostDir/file3": 0777,
 		}
 
 		getRoot := func(path string) string {
@@ -44,7 +50,7 @@ var _ = Describe("Unzip function", func() {
 		}
 
 		cleanUpFiles := func() {
-			for filePath := range zippedFiles {
+			for filePath := range fileContents {
 				rootDir := getRoot(filePath)
 				removeFile(rootDir)
 			}
@@ -59,30 +65,45 @@ var _ = Describe("Unzip function", func() {
 			Expect(content).To(Equal([]byte(expectedContent)))
 		}
 
+		assertFilePermissions := func(file string, expectedPermissions os.FileMode) {
+			path := filepath.Join(targetDir, file)
+			fileInfo, err := os.Stat(path)
+			if err != nil {
+				panic(err)
+			}
+			Expect(fileInfo.Mode()).To(Equal(expectedPermissions))
+		}
+
 		assertFilesUnzippedSuccessfully := func() {
 			It("should not fail", func() {
 				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("should unzip the files in the target directory", func() {
-				for fileName := range zippedFiles {
+				for fileName := range fileContents {
 					path := filepath.Join(targetDir, fileName)
 					Expect(path).To(BeAnExistingFile())
 				}
 			})
 
 			It("should not change file contents", func() {
-				for file, expectedContent := range zippedFiles {
+				for file, expectedContent := range fileContents {
 					assertFileContents(file, expectedContent)
+				}
+			})
+
+			It("should not change file permissions", func() {
+				for file, expectedPermissions := range filePermissions {
+					assertFilePermissions(file, expectedPermissions)
 				}
 			})
 		}
 
-		Context("When target directory is not specified", func() {
+		Context("When target directory is current working directory", func() {
 
 			BeforeEach(func() {
 				srcZip = "testdata/unzip_me.zip"
-				targetDir = ""
+				targetDir = "."
 			})
 
 			AfterEach(func() {
@@ -97,7 +118,7 @@ var _ = Describe("Unzip function", func() {
 				srcZip = "testdata/unzip_me.zip"
 				targetDir = "testdata/tmp"
 
-				err := os.Mkdir(targetDir, os.ModeDir)
+				err := os.Mkdir(targetDir, 0755)
 				if err != nil {
 					panic(err)
 				}
@@ -115,6 +136,20 @@ var _ = Describe("Unzip function", func() {
 	})
 
 	Context("Unzip fails", func() {
+
+		Context("When target directory is not specified", func() {
+
+			BeforeEach(func() {
+				targetDir = ""
+				srcZip = "testdata/unzip_me.zip"
+			})
+
+			It("should fail", func() {
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError(ContainSubstring("target directory cannot be empty")))
+			})
+		})
+
 		Context("When target dir does not exist", func() {
 
 			BeforeEach(func() {
