@@ -40,6 +40,11 @@ func Unzip(src, targetDir string) error {
 }
 
 func extractFile(src *zip.File, destPath string) error {
+	parentDir := filepath.Dir(src.FileInfo().Name())
+	if err := os.MkdirAll(parentDir, 0755); err != nil {
+		return err
+	}
+
 	reader, err := src.Open()
 	if err != nil {
 		return err

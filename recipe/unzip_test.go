@@ -115,7 +115,6 @@ var _ = Describe("Unzip function", func() {
 
 		Context("When target directory is not empty string", func() {
 			BeforeEach(func() {
-				srcZip = "testdata/unzip_me.zip"
 				targetDir = "testdata/tmp"
 
 				err := os.Mkdir(targetDir, 0755)
@@ -131,7 +130,19 @@ var _ = Describe("Unzip function", func() {
 				}
 			})
 
-			assertFilesUnzippedSuccessfully()
+			Context("When the zip does not contain the directory files", func() {
+				BeforeEach(func() {
+					srcZip = "testdata/just_files.zip"
+				})
+				assertFilesUnzippedSuccessfully()
+			})
+
+			Context("When the zip contains the directory files", func() {
+				BeforeEach(func() {
+					srcZip = "testdata/unzip_me.zip"
+				})
+				assertFilesUnzippedSuccessfully()
+			})
 		})
 	})
 
