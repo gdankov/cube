@@ -46,7 +46,7 @@ func (d *PackageInstaller) download(appId string, filepath string) error {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return errors.New(fmt.Sprintf("Download failed. Status Code %s", resp.StatusCode))
+		return errors.New(fmt.Sprintf("Download failed. Status Code %d", resp.StatusCode))
 	}
 
 	defer resp.Body.Close()
