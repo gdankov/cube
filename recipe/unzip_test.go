@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"github.com/julz/cube"
 	. "github.com/julz/cube/recipe"
 )
 
@@ -18,10 +19,12 @@ var _ = Describe("Unzip function", func() {
 		targetDir string
 		srcZip    string
 		err       error
+		extractor cube.Extractor
 	)
 
 	JustBeforeEach(func() {
-		err = Unzip(srcZip, targetDir)
+		extractor = &Unzipper{}
+		err = extractor.Extract(srcZip, targetDir)
 	})
 
 	Context("Unzip succeeds", func() {
@@ -159,19 +162,6 @@ var _ = Describe("Unzip function", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError(ContainSubstring("target directory cannot be empty")))
 			})
-		})
-
-		Context("When target dir does not exist", func() {
-
-			BeforeEach(func() {
-				targetDir = "non-existent"
-				srcZip = "testdata/unzip_me.zip"
-			})
-
-			It("should fail", func() {
-				Expect(err).To(HaveOccurred())
-			})
-
 		})
 
 		Context("When target dir is not a directory", func() {

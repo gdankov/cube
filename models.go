@@ -70,3 +70,8 @@ type BackendConfig struct {
 	CubeAddress       string
 	SkipSslValidation bool
 }
+
+//go:generate counterfeiter . Extractor
+type Extractor interface {
+	Extract(src, targetDir string) error
+}
