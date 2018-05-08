@@ -50,18 +50,12 @@ func main() {
 
 	respondWithFailureAndExit(err, stagingGuid, annotationJson)
 
-	downloader := Downloader{cfclient}
+	installer := PackageInstaller{cfclient, &Unzipper{}}
 	uploader := Uploader{cfclient}
 
-	appbitsPath := "/workspace/appbits"
+	workspaceDir := "/workspace"
 
-	err = downloader.Download(appId, appbitsPath)
-	respondWithFailureAndExit(err, stagingGuid, annotationJson)
-
-	err = Unzip(appbitsPath, "/workspace")
-	respondWithFailureAndExit(err, stagingGuid, annotationJson)
-
-	err = os.Remove(appbitsPath)
+	err = installer.Install(appId, workspaceDir)
 	respondWithFailureAndExit(err, stagingGuid, annotationJson)
 
 	err = execCmd(

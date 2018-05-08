@@ -5,28 +5,40 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/julz/cube"
 	"github.com/pkg/errors"
 )
 
-type Downloader struct {
-	Cfclient cube.CfClient
+type PackageInstaller struct {
+	Cfclient  cube.CfClient
+	Extractor cube.Extractor
 }
 
-func (d *Downloader) Download(appId string, filepath string) error {
+func (d *PackageInstaller) Install(appId string, targetDir string) error {
 	if appId == "" {
 		return errors.New("empty appId provided")
 	}
 
-	if filepath == "" {
-		return errors.New("empty filepath provided")
+	if targetDir == "" {
+		return errors.New("empty targetDir provided")
 	}
 
+	zipPath := filepath.Join(targetDir, appId) + ".zip"
+	if err := d.download(appId, zipPath); err != nil {
+		return err
+	}
+
+	return d.Extractor.Extract(zipPath, targetDir)
+}
+
+func (d *PackageInstaller) download(appId string, filepath string) error {
 	file, err := os.Create(filepath)
 	if err != nil {
 		return err
 	}
+	defer file.Close()
 
 	resp, err := d.Cfclient.GetAppBitsByAppGuid(appId)
 	if err != nil {
